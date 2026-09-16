@@ -236,15 +236,16 @@ if necesita playwright; then
   else aviso "Playwright necesita Node.js"; anotar error Playwright "falta Node.js"; fi
 fi
 
-# rtk: ahorra tokens en las llamadas de Claude. Binario suelto desde GitHub.
+# rtk: ahorra tokens en las llamadas de Claude. Primero por Homebrew (tap oficial);
+# si el tap falla, se baja el binario suelto de las releases.
 if necesita rtk; then
-  if [ "$ARQ" = arm64 ]; then RTK_ARCHIVO=rtk-aarch64-apple-darwin.tar.gz; else RTK_ARCHIVO=rtk-x86_64-apple-darwin.tar.gz; fi
-  RTK_URL="https://github.com/rtk-ai/rtk/releases/latest/download/$RTK_ARCHIVO"
-  if [ "$SIMULACION" = 1 ]; then paso "[simulación] bajar $RTK_URL"
-  else
-    paso "instalando rtk"
+  if brew_instalar rtk-ai/tap/rtk "rtk"; then :; fi
+  if ! hay rtk && [ "$SIMULACION" = 0 ]; then
+    if [ "$ARQ" = arm64 ]; then RTK_ARCHIVO=rtk-aarch64-apple-darwin.tar.gz; else RTK_ARCHIVO=rtk-x86_64-apple-darwin.tar.gz; fi
+    paso "rtk por Homebrew no salió; bajando el binario"
     TMP="$(mktemp -d)"
-    if curl -fsSL "$RTK_URL" -o "$TMP/rtk.tar.gz" 2>>"$REGISTRO" && tar -xzf "$TMP/rtk.tar.gz" -C "$TMP" 2>>"$REGISTRO"; then
+    if curl -fsSL "https://github.com/rtk-ai/rtk/releases/latest/download/$RTK_ARCHIVO" -o "$TMP/rtk.tar.gz" 2>>"$REGISTRO" \
+       && tar -xzf "$TMP/rtk.tar.gz" -C "$TMP" 2>>"$REGISTRO"; then
       mkdir -p "$HOME/.local/bin"
       find "$TMP" -type f -name rtk -perm -u+x -exec cp {} "$HOME/.local/bin/rtk" \; 2>>"$REGISTRO"
       chmod +x "$HOME/.local/bin/rtk" 2>/dev/null
@@ -252,11 +253,12 @@ if necesita rtk; then
     fi
     rm -rf "$TMP"
   fi
-  if hay rtk || [ "$SIMULACION" = 1 ]; then ok "rtk instalado"; anotar ok rtk "instalado ahora"
+  if hay rtk || [ "$SIMULACION" = 1 ]; then
+    ok "rtk instalado"; anotar ok rtk "instalado ahora"
   else
     aviso "No pude instalar rtk (el instalador sigue igual)"
-    nota "Descarga manual: https://github.com/rtk-ai/rtk/releases"
-    anotar error rtk "bajar el binario a mano"
+    nota "A mano: brew install rtk-ai/tap/rtk"
+    anotar error rtk "brew install rtk-ai/tap/rtk"
   fi
 fi
 
