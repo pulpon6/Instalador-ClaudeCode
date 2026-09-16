@@ -1,0 +1,25 @@
+# ÁRBOL DE CARPETAS — instalador de Claude Code para macOS
+#
+# Estas carpetas se crean en Documentos. Son el espacio de trabajo LOCAL con
+# Claude: no reemplazan a Google Drive, lo complementan. La regla práctica:
+# acá se trabaja, en Drive se comparte lo terminado.
+#
+# El instalador lee este archivo tal cual. Para cambiar la estructura NO hay
+# que tocar los scripts, solo este archivo.
+#
+# Reglas del formato:
+#   - Una carpeta por línea.
+#   - Usa "/" para las subcarpetas (no sangría).
+#   - Las líneas que empiezan con "#" son comentarios y se ignoran.
+#   - Después de la ruta puedes escribir " | " y una descripción: esa frase va
+#     al LEEME.md que se crea dentro de la carpeta.
+#   - GUARDAR SIEMPRE EN UTF-8, o los acentos se rompen.
+#   - Evita corchetes [ ] en los nombres de carpeta.
+
+Trabajo | Espacio de trabajo con Claude. Acá se trabaja; en Google Drive se comparte lo terminado.
+Trabajo/00 Contexto | Información de contexto para Claude: cómo trabaja tu área, qué sistemas usas, a quién reportas. Cuanto mejor esté esto, mejor trabaja Claude.
+Trabajo/01 Informes | Informes y documentos que genera Claude. Uno por tema y fecha.
+Trabajo/02 Evidencias | Capturas, registros y exportaciones que respaldan los informes. Material de respaldo: no se borra.
+Trabajo/03 Documentacion | Manuales, políticas y procedimientos de referencia que consultas seguido.
+Trabajo/04 Plantillas | Plantillas de documentos. Se copian a otra carpeta para usarlas; no se editan acá.
+Trabajo/99 Temporal | Archivos de trabajo descartables. Se puede vaciar en cualquier momento.
