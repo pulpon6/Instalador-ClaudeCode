@@ -2,16 +2,16 @@
 
 Instalador del entorno de trabajo con Claude para Windows y Mac: Claude para
 escritorio, Claude Code, Node.js, Python, markitdown, los plugins superpowers
-y caveman, y una estructura de carpetas en Documentos.
+y caveman, GSD Core, y una estructura de carpetas en Documentos.
 
-## Versión actual: 2.3.0
+## Versión actual: 2.4.0
 
 | Archivo | Para quién |
 |---|---|
-| `Instalador-Claude-SUMA-Windows-v2.3.0.zip` | SUMA Beneficios, Windows |
-| `Instalador-Claude-SUMA-Mac-v2.3.0.zip` | SUMA Beneficios, Mac |
-| `Instalador-Claude-Generico-Windows-v2.3.0.zip` | Cualquier equipo, Windows. Sin marca y sin contacto de soporte |
-| `Instalador-Claude-Generico-Mac-v2.3.0.zip` | Cualquier equipo, Mac. Sin marca y sin contacto de soporte |
+| `Instalador-Claude-SUMA-Windows-v2.4.0.zip` | SUMA Beneficios, Windows |
+| `Instalador-Claude-SUMA-Mac-v2.4.0.zip` | SUMA Beneficios, Mac |
+| `Instalador-Claude-Generico-Windows-v2.4.0.zip` | Cualquier equipo, Windows. Sin marca y sin contacto de soporte |
+| `Instalador-Claude-Generico-Mac-v2.4.0.zip` | Cualquier equipo, Mac. Sin marca y sin contacto de soporte |
 
 ### Cómo se usa
 
@@ -23,6 +23,23 @@ y caveman, y una estructura de carpetas en Documentos.
    `mac`, no adentro.
 
 Cada zip trae una guía de usuario en HTML con el paso a paso.
+
+### Novedades de la 2.4.0
+
+- **GSD Core** (`@opengsd/gsd-core`) en los dos perfiles y en Windows y Mac. Se
+  instala con `npx @opengsd/gsd-core@latest --claude --global`. Exige
+  **Node.js 24 o superior**: si el equipo tiene una versión más vieja, el
+  instalador la actualiza (o avisa si no puede).
+- **Nada depende de la Microsoft Store.** Si winget no responde, se repara por
+  terminal con el módulo oficial `Microsoft.WinGet.Client` o, si falla, con los
+  archivos de los releases de `microsoft/winget-cli` en GitHub.
+- **Git, Python y ripgrep ya no dependen de winget.** Si winget falla,
+  se descargan directo: Git y ripgrep de GitHub (verificados con su SHA-256) y
+  Python de python.org (verificado con la firma de la Python Software
+  Foundation). Todo por usuario, sin administrador.
+- **Mac:** ripgrep también tiene descarga directa si no hay Homebrew.
+- **Desinstalar** ahora también quita GSD Core.
+- **RustDesk** actualizado de la 1.4.9 a la 1.5.0.
 
 ### Novedades de la 2.3.0
 
@@ -47,10 +64,11 @@ Cada zip trae una guía de usuario en HTML con el paso a paso.
 | Claude Code (terminal) | ✓ | ✓ |
 | Git | ✓ | ✓ |
 | Python 3 y uv | ✓ | ✓ |
-| Node.js (lo usa el plugin caveman) | ✓ | ✓ |
+| Node.js 24 o superior (lo usan caveman y GSD Core) | ✓ | ✓ |
 | markitdown (para que Claude lea PDF, Word y Excel) | ✓ | ✓ |
 | Plugin **superpowers** | ✓ | ✓ |
 | Plugin **caveman** | ✓ | ✓ |
+| **GSD Core** (flujo por fases, 72 skills) | ✓ | ✓ |
 | Google Drive (necesita permiso de administrador) | ✓ | ✓ |
 | Carpetas de trabajo en Documentos | ✓ | ✓ |
 | bun, ripgrep, Playwright con Chromium | | ✓ |
@@ -123,6 +141,30 @@ Subagentes: `cavecrew-investigator` (ubica código), `cavecrew-builder`
 (ediciones de 1 o 2 archivos) y `cavecrew-reviewer` (revisión de cambios).
 Las skills de Caveman Cloud solo sirven con una cuenta de ese servicio.
 
+### GSD Core (los dos perfiles) — 72 skills y 35 subagentes
+
+Origen: [open-gsd/gsd-core](https://github.com/open-gsd/gsd-core) (paquete
+npm `@opengsd/gsd-core`, continuación de get-shit-done). Se instala en
+`~/.claude`. Es un flujo de trabajo por fases: se arranca con `/gsd-new-project`
+y a partir de ahí Claude planifica, ejecuta y verifica cada fase. Para ver todos
+los comandos: `/gsd-help`. Para actualizar: `/gsd-update`.
+
+| Área | Skills |
+|---|---|
+| Arranque | `gsd-new-project`, `gsd-onboard` (proyecto existente), `gsd-map-codebase`, `gsd-ingest-docs`, `gsd-import`, `gsd-next` (te dirige al siguiente paso), `gsd-help` |
+| Ciclo de cada fase | `gsd-discuss-phase`, `gsd-spec-phase`, `gsd-plan-phase`, `gsd-mvp-phase`, `gsd-execute-phase`, `gsd-verify-work`, `gsd-validate-phase`, `gsd-secure-phase`, `gsd-ship` |
+| Rápidos y autónomos | `gsd-fast`, `gsd-quick`, `gsd-quick-batch`, `gsd-autonomous`, `gsd-manager` |
+| Ideas | `gsd-explore`, `gsd-sketch`, `gsd-spike`, `gsd-capture` |
+| Revisión y calidad | `gsd-code-review`, `gsd-review`, `gsd-plan-review-convergence`, `gsd-audit-fix`, `gsd-audit-uat`, `gsd-add-tests`, `gsd-ui-phase`, `gsd-ui-review`, `gsd-eval-review`, `gsd-ai-integration-phase`, `gsd-debug`, `gsd-forensics` |
+| Hitos y proyecto | `gsd-new-milestone`, `gsd-complete-milestone`, `gsd-audit-milestone`, `gsd-milestone-summary`, `gsd-phase`, `gsd-review-backlog`, `gsd-cleanup`, `gsd-docs-update`, `gsd-extract-learnings` |
+| Continuidad | `gsd-pause-work`, `gsd-resume-work`, `gsd-thread`, `gsd-workstreams`, `gsd-workspace`, `gsd-progress`, `gsd-stats`, `gsd-undo`, `gsd-pr-branch`, `gsd-inbox` |
+| Memoria y conocimiento | `gsd-graphify`, `gsd-mempalace-capture`, `gsd-mempalace-recall`, `gsd-profile-user` |
+| Configuración | `gsd-config`, `gsd-settings`, `gsd-surface`, `gsd-health`, `gsd-update`, y los atajos por área `gsd-ns-context`, `gsd-ns-ideate`, `gsd-ns-manage`, `gsd-ns-project`, `gsd-ns-review`, `gsd-ns-workflow` |
+
+GSD Core agrega sus propios hooks a `~/.claude/settings.json` (control de
+contexto, guardas de lectura y escritura, protección de `.env`). Es
+independiente de caveman y de rtk.
+
 ### gstack (solo el perfil «Todo») — 56 skills
 
 Origen: [garrytan/gstack](https://github.com/garrytan/gstack). Se instala en
@@ -141,5 +183,12 @@ Origen: [garrytan/gstack](https://github.com/garrytan/gstack). Se instala en
 | Contexto y memoria | `context-save`, `context-restore`, `learn`, `retro`, `setup-gbrain`, `sync-gbrain` |
 | iOS | `ios-qa`, `ios-fix`, `ios-design-review`, `ios-sync`, `ios-clean` |
 | Otros | `codex` (usa el CLI de OpenAI Codex) |
+
+### RustDesk
+
+`rustdesk-1.5.0-x86_64.exe` (Windows, 64 bits) es el ejecutable oficial de
+[rustdesk/rustdesk](https://github.com/rustdesk/rustdesk/releases/tag/1.5.0),
+para dar soporte remoto. No lo usa el instalador: se entrega aparte. SHA-256:
+`8555777215510d83d2d61c9dc984e4fcc838bd7e79f9d18a42585431f5e8bb47`.
 
 Las versiones anteriores siguen en el historial del repositorio.
