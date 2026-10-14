@@ -79,6 +79,92 @@ Configuración que deja puesta: Claude Code no pide permiso para cada acción
 (`bypassPermissions`), salvo para leer secretos (`.env`, `.ssh`, claves
 privadas, `.pem`, `.kdbx`), que quedan bloqueados.
 
+## Terminal o Claude Desktop: qué funciona dónde
+
+Hay tres lugares donde se puede usar Claude, y no todo lo que instala este
+paquete funciona en los tres:
+
+- **Terminal:** Claude Code (`claude`) en la terminal.
+- **Desktop, pestaña Code:** la pestaña *Code* de Claude para escritorio. Corre
+  el mismo motor que la terminal, con su propia copia de Claude Code.
+- **Desktop, chat:** la pestaña de chat normal de Claude para escritorio. Ahí
+  **no se cargan** skills, plugins ni hooks: todo lo de este paquete es de
+  Claude Code.
+
+La documentación oficial dice que la pestaña Code y la terminal comparten
+`CLAUDE.md`, `~/.claude/settings.json`, los **hooks** y los **skills**
+([Claude Code Desktop](https://code.claude.com/docs/en/desktop#shared-configuration)).
+Por eso casi todo funciona igual en las dos. Lo que cambia es qué necesita cada
+pieza para correr.
+
+| Pieza | Terminal | Desktop (pestaña Code) | Qué necesita / nota |
+|---|:---:|:---:|---|
+| **superpowers** (15 skills) | ✓ | ✓ | Solo instrucciones. En Desktop los plugins se administran desde su gestor gráfico; no están disponibles en sesiones WSL ni en la nube. |
+| **caveman**: modo y skills de uso diario (`caveman`, `caveman-commit`, `caveman-review`, `caveman-compress`, `caveman-explore`, `cavecrew`, `investigate-first`, `surgical-patch`, `safe-refactor`, `lean-build`, `migration`, `verify-and-stop`, `caveman-help`, `caveman-stats`) | ✓ | ✓ | Los hooks `SessionStart` y `UserPromptSubmit` ejecutan `node`: tiene que estar en el PATH. |
+| **caveman Cloud** (`caveman-setup`, `-discover`, `-optimize`, `-manage`, `-evidence-review`, `-learn`) | ✓ | ✓ | Requieren una cuenta de Caveman Cloud, en cualquier lugar. |
+| **GSD Core**: skills `/gsd-*` (72) | ✓ | ✓ | Necesita Node 24+. Muchos usan `AskUserQuestion` para preguntar. |
+| **GSD Core**: hooks (guardas de lectura/escritura, monitor de contexto) | ✓ | ✓ | Se guardan en `settings.json`, que es compartido. |
+| **GSD Core**: barra de estado (statusline) | ✓ | No documentado | Es una barra de la terminal. La documentación de Desktop no la menciona; no la probamos. |
+| **GSD Core**: `gsd-review`, `gsd-plan-review-convergence` | ✓ | ✓ | Piden revisión a otras IA por línea de comandos (`codex`, `gemini`, `coderabbit`, `opencode`, `qwen`, `cursor-agent`). **El instalador no instala ninguna**: hay que tenerla en el PATH. |
+| **GSD Core**: `gsd-ultraplan-phase` (beta) | ✓ | No probado | Manda el plan a la nube de Claude Code y lo revisás en el navegador. |
+| **gstack**: planificación y revisión (`office-hours`, `spec`, `autoplan`, `plan-*`, `review`, `cso`, `health`, `investigate`, `retro`, `ship`, `document-*`, `make-pdf`, `context-save`/`restore`, `learn`, `diagram`, `careful`, `guard`, `freeze`) | ✓ | ✓ | Usan `bash` y `bun`. `ship` y `land-and-deploy` usan `git` y `gh`. |
+| **gstack**: navegador (`browse`, `qa`, `qa-only`, `scrape`, `benchmark`, `canary`, `design-review`, `devex-review`, `land-and-deploy`, `skillify`, `pair-agent`, `setup-browser-cookies`) | ✓ | ✓ | Usan el binario propio de gstack con Chromium (Playwright) desde la shell. No es el panel de navegador de Desktop. |
+| **gstack**: `open-gstack-browser` | ✓ | ✓ | Abre una ventana de Chromium aparte. |
+| **gstack**: `codex` | ✓ | ✓ | Necesita el CLI de OpenAI Codex instalado. |
+| **gstack**: `ios-*` (5) | ✓ | ✓ | Solo Mac con Xcode. |
+| **rtk**: binario `rtk` | ✓ | No aplica | Es un programa de línea de comandos. Solo se usa escribiéndolo en una terminal. |
+| **rtk**: hook `rtk hook claude` | ✓ | ✓ | Reescribe los comandos que Claude ejecuta con la herramienta Bash (`git status` pasa a `rtk git status`). **No** actúa sobre `Read`, `Grep` ni `Glob`. `rtk` tiene que estar en el PATH que ve la app (ver abajo). |
+| **markitdown, uv, Python, ripgrep** | ✓ | ✓ | Claude los usa por Bash: tienen que estar en el PATH. |
+
+### Lo que Desktop no tiene
+
+Según la [documentación oficial](https://code.claude.com/docs/en/desktop#whats-not-available-in-desktop),
+estas funciones de la terminal no existen en la pestaña Code:
+
+- `claude -p` / `--print` (uso sin interfaz, para scripts y automatización).
+- Agent teams (equipos de agentes coordinados). Los workflows dinámicos sí.
+- Comandos que abren un diálogo en la terminal (`/permissions`, `/config` con
+  argumentos): responden `isn't available in this environment`.
+
+Ningún skill de este paquete depende de ellas: revisamos los `SKILL.md` de
+gstack y de GSD y no usan `claude -p`.
+
+### El PATH en Desktop (el punto que más falla)
+
+La documentación oficial indica que Desktop **no siempre hereda tu entorno de
+shell**:
+
+- **macOS:** al abrir la app desde el Dock o Finder, lee tu perfil de shell
+  (por ejemplo `~/.zshrc` o `~/.bashrc`) para sacar el `PATH`.
+- **Windows:** hereda las variables de usuario y de sistema, pero no lee los
+  perfiles de PowerShell. El instalador escribe el PATH de usuario en el
+  registro, así que alcanza.
+
+⚠️ **Mac:** el instalador agrega `~/.local/bin` al PATH en **`~/.zprofile`**
+(o `~/.bash_profile`). La documentación nombra `~/.zshrc`, y no confirma que
+Desktop lea `~/.zprofile`. Si `node`, `rtk` o `rg` no se encuentran dentro de
+Desktop, agregá esta línea a `~/.zshrc` y reiniciá la app:
+
+```bash
+export PATH="$HOME/.local/bin:$HOME/.bun/bin:$PATH"
+```
+
+Para probarlo en Desktop: abrí la pestaña Code, pedile que ejecute
+`git status`, y después corré `rtk gain --history` en una terminal. Si el
+comando figura como `rtk git status`, el hook funcionó.
+
+### Cómo se validó esto
+
+| Qué | Cómo | Resultado |
+|---|---|---|
+| Hooks, skills y settings compartidos | Documentación oficial de Claude Code Desktop | Confirmado |
+| Funciones que Desktop no tiene | Documentación oficial | Confirmado |
+| Comportamiento del PATH | Documentación oficial | Confirmado; no confirma `~/.zprofile` |
+| Dependencias de cada skill | Lectura de los `SKILL.md` de gstack y GSD (comandos, CLIs, navegador) | Hecho |
+| El hook de rtk reescribe comandos | `rtk hook check "git status"` devolvió `rtk git status` | Confirmado |
+| Funcionamiento dentro de la app Desktop | No se probó ejecutando la app | **Pendiente** |
+| Statusline de GSD en Desktop | No aparece en la documentación | **Pendiente** |
+
 ## Skills que se instalan
 
 Se usan escribiendo `/nombre` en Claude Code, o Claude las activa solo cuando
